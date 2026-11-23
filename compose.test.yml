@@ -1,0 +1,22 @@
+# Local test only (not used by Railway): docker compose -f compose.test.yml up --build
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment: { POSTGRES_USER: excalidash, POSTGRES_PASSWORD: localtestpw, POSTGRES_DB: excalidash }
+    volumes: [pg:/var/lib/postgresql/data]
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://excalidash:localtestpw@postgres:5432/excalidash
+      FRONTEND_URL: http://localhost:8080
+      JWT_SECRET: local-test-jwt-secret-0123456789abcdef0123
+      CSRF_SECRET: local-test-csrf-secret-0123456789
+      API_KEY_HASH_PEPPER: local-test-pepper-0123456789
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: LocalTest-Passw0rd!
+    volumes: [uploads:/app/uploads]
+  frontend:
+    build: ./frontend
+    environment: { BACKEND_URL: "backend:8000", PORT: "8080" }
+    ports: ["8080:8080"]
+volumes: { pg: {}, uploads: {} }
