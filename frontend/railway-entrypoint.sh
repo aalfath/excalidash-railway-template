@@ -19,10 +19,11 @@ ESC_BACKEND=$(printf '%s' "$BACKEND_URL" | sed 's/[\/&|]/\\&/g')
 sed -e "s|__BACKEND_URL__|$ESC_BACKEND|g" \
     -e "s|__BACKEND_RESOLVER_CONFIG__|resolver $NS valid=10s;|" \
     -e "s|__BACKEND_RESOLVE__|resolve|" \
-    -e "s|listen 80;|$LISTEN|" \
     -e "/listen 8080;/d" \
+    -e "s|listen 80;|$LISTEN|" \
     -e "s|^\( *\)location / {|\1location = /healthz { access_log off; default_type text/plain; return 200 'ok'; }\n\1location / {|" \
     "$T" > /tmp/nginx.conf
 echo "nginx: port $PORT, backend $BACKEND_URL, resolver $NS"
 nginx -q -t -c /tmp/nginx.conf
+grep -q "listen .*$PORT" /tmp/nginx.conf || { echo "nginx config has no listen on $PORT" >&2; exit 1; }
 exec "$@"
